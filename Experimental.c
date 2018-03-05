@@ -76,6 +76,18 @@ task usercontrol () {
 		motor[middleRightMotor] = right;
 		motor[backRightMotor] = right;
 
+		//PRIMARY INTAKE - left buttons (AUTOMATIC)
+		if (vexRT[Btn7U] == 1) {
+			mobileGoalDirection = true;
+			startTask(mobileGoalIntake);
+		} else if (vexRT[Btn7D] == 1) {
+			mobileGoalDirection = false;
+			startTask(mobileGoalIntake);
+		} else {
+			motor[arm] = 0;
+		}
+
+		/*
 		//PRIMARY INTAKE - left buttons (MANUAL)
 		if (vexRT[Btn7U] == 1) {
 			motor[arm] = 127;
@@ -84,6 +96,8 @@ task usercontrol () {
 		} else {
 			motor[arm] = 0;
 		}
+		*/
+
 
 		if (vexRT[Btn8U] == 1) {
 			motor[rightLift] = 127;
