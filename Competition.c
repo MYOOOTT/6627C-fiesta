@@ -1,5 +1,6 @@
+#pragma config(Sensor, in1,    mobileGoalPotentiometer, sensorPotentiometer)
+#pragma config(Sensor, dgtl1,  liftEncoder,    sensorQuadEncoder)
 #pragma config(Motor,  port1,           frontRightMotor, tmotorVex393TurboSpeed_HBridge, openLoop)
-#pragma config(Motor,  port2,           frontRightMotor, tmotorNone, openLoop)
 #pragma config(Motor,  port3,           rightLift,     tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port4,           arm,           tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port5,           rearRightMotors, tmotorVex393TurboSpeed_MC29, openLoop)
@@ -33,9 +34,12 @@ void pre_auton() {
 
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
+
+  SensorValue[liftEncoder] = 0;
 }
 
 task autonomous() {
+	pre_auton();
 }
 
 
@@ -54,7 +58,8 @@ task mobileGoalIntake() {
 }
 
 task usercontrol () {
-
+		SensorValue[liftEncoder] = 0;
+  	SensorValue[mobileGoalPotentiometer] = 0;
 	while(1 == 1)
 	{
 		//arcade control (left joystick)
