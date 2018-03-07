@@ -47,21 +47,23 @@ bool mobileGoalPosition; //true = up, false = down
 												// up = 3048, down = 1280
 
 task mobileGoalIntake() {
-	if(mobileGoalPosition) {
-		//while(SensorValue[mobileGoalPotentiometer] == 1){}
-			motor[arm] = 127;
-			wait(.5);
-			motor[arm] = 0;
-	} else {
+	if(mobileGoalPosition) { //move into down pos
+		while(SensorValue[mobileGoalPotentiometer] > 1280){ //while the intake is above the "down" position
 			motor[arm] = -127;
-			wait(.5);
+		}
+
+			motor[arm] = 0;
+	} else { //moves it into up pos
+		while(SensorValue[mobileGoalPotentiometer] < 3048) { //while the intake is below the "up" position
+			motor[arm] = 127;
+		}
+
 			motor[arm] = 0;
 	}
 }
 
 task usercontrol () {
-		SensorValue[liftEncoder] = 0;
-  	SensorValue[mobileGoalPotentiometer] = 0;
+
 	while(1 == 1)
 	{
 		//arcade control (left joystick)
@@ -80,20 +82,24 @@ task usercontrol () {
 		motor[frontRightMotor]  = right;
 		motor[rearRightMotors] = right;
 
-		//PRIMARY INTAKE - left buttons (MANUAL)
-		if (vexRT[Btn7U] == 1) {
-			motor[arm] = 127;
-		} else if (vexRT[Btn7D] == 1) {
-			motor[arm] = -127;
+		//PRIMARY INTAKE (AUTOMATIC)
+		if (vexRT[Btn5U] == 1) {
+			mobileGoalPosition = false; //assume it's in down position already
+			startTask(mobileGoalIntake);
+
+		} else if (vexRT[Btn5D] == 1) {
+			mobileGoalPosition = true; //assume it's in up pos already
+			startTask(mobileGoalIntake);
+
 		} else {
 			motor[arm] = 0;
 		}
 
-		if (vexRT[Btn8U] == 1) {
+		if (vexRT[Btn6U] == 1) {
 			motor[rightLift] = 127;
 			motor[leftLift] = 127;
 
-			} else if (vexRT[Btn8D] == 1) {
+			} else if (vexRT[Btn6D] == 1) {
 			motor[rightLift] = -127;
 			motor[leftLift] = -127;
 
@@ -102,10 +108,10 @@ task usercontrol () {
 			motor[leftLift] = 0;
 		}
 
-		if (vexRT[Btn6U] == 1) {
+		if (vexRT[Btn8R] == 1) {
 			motor[claw] = 127;
 
-			} else if (vexRT[Btn6D] == 1) {
+			} else if (vexRT[Btn8D] == 1) {
 			motor[claw] = -127;
 
 			} else {
