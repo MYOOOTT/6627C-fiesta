@@ -25,6 +25,7 @@ bool mobileGoalPosition; //true = up, false = down
 // up = 2800, down = 1500
 const int TOP_MOBILE = 2800;
 const int BOT_MOBILE = 1400;
+int manualMode = -1;
 
 
 void pre_auton() {
@@ -56,7 +57,7 @@ task mobileGoalIntake() {
 		}
 		motor[arm] = 80;
 
-	} else { //moves it into up pos
+		} else { //moves it into up pos
 		while(SensorValue[mobileGoalPotentiometer] < TOP_MOBILE) { //while the intake is below the "up" position
 			motor[arm] = 127;
 		}
@@ -87,13 +88,28 @@ task usercontrol () {
 		motor[rearRightMotors] = right;
 
 		//PRIMARY INTAKE (AUTOMATIC)
-		if (vexRT[Btn5U] == 1) {
-			mobileGoalPosition = false; //assume it's in down position already
-			startTask(mobileGoalIntake);
+		if (manualMode == -1) {
+			if (vexRT[Btn5U] == 1) {
+				mobileGoalPosition = false; //assume it's in down position already
+				startTask(mobileGoalIntake);
 
-			} else if (vexRT[Btn5D] == 1) {
-			mobileGoalPosition = true; //assume it's in up pos already
-			startTask(mobileGoalIntake);
+				} else if (vexRT[Btn5D] == 1) {
+				mobileGoalPosition = true; //assume it's in up pos already
+				startTask(mobileGoalIntake);
+			}
+		} else {
+			if (vexRT[Btn5U] == 1) {
+				motor[arm] = 127;
+			}
+			else if (vexRT[Btn5D] ==1) {
+				motor[arm] = -127;
+			} else {
+				motor[arm] = 0;
+			}
+		}
+
+		if (vexRT[Btn7U] == 1) {
+			manualMode *= -1;
 		}
 
 		if (vexRT[Btn6U] == 1) {
@@ -135,10 +151,10 @@ task usercontrol () {
 					motor[leftLift] = 0;
 
 					} else if (SensorValue[liftEncoder] > TOP_LIFT) { //when lift is in front of robot
-						while(SensorValue[liftEncoder] != TOP_LIFT) {
-							motor[rightLift] = -127;
-							motor[leftLift] = -127;
-						}
+					while(SensorValue[liftEncoder] != TOP_LIFT) {
+						motor[rightLift] = -127;
+						motor[leftLift] = -127;
+					}
 
 					motor[rightLift] = 127;
 					motor[leftLift] = 127;
