@@ -24,8 +24,7 @@ const int TOP_LIFT = -692;
 bool mobileGoalPosition; //true = up, false = down
 // up = 2800, down = 1500
 const int TOP_MOBILE = 2800;
-const int BOT_MOBILE = 1470;
-int manualMode = -1;
+const int BOT_MOBILE = 1520;
 
 
 void pre_auton() {
@@ -45,30 +44,84 @@ void pre_auton() {
 	SensorValue[liftEncoder] = 0;
 }
 
-task autonomous() {
-	pre_auton();
+
+void stopMotors() {
+	motor[frontRightMotor] = 0; //-
+	motor[rearRightMotors] = 0; //-
+	motor[frontLeftMotor] = 0; //+
+	motor[rearLeftMotors] = 0; //+
+}
+void move1() {//1 = forward, -1 = backward
+	int power = 127
+'	motor[frontRightMotor] = (power * -1); //-
+	motor[rearRightMotors] = (power * -1); //-
+	motor[frontLeftMotor] = power; //+
+	motor[rearLeftMotors] = power; //+
+	waitInMilliseconds(80);
+	stopMotors();
 }
 
+void turnRight() {
+	motor[frontRightMotor] = -63;
+	motor[rearRightMotors] = -63;
+	motor[frontLeftMotor] = 63;
+	motor[rearRightMotors] = 63;
+	wait(.1);
+}
 
-task mobileGoalIntake() {
-	if(mobileGoalPosition) { //move into down pos
-		while(SensorValue[mobileGoalPotentiometer] > 1470){ //while the intake is above the "down" position
-			motor[arm] = -127;
-		}
-		clearTimer(T1);
-	while(time1[T1] < 30)
-		motor[arm] = 80; //brake, too lazy to make it shorter
+task something() {
+	motor[claw] = -127;
+	wait(2);
+	motor[claw] = 0;
+}
 
-		} else { //moves it into up pos
-		while(SensorValue[mobileGoalPotentiometer] < TOP_MOBILE) { //while the intake is below the "up" position
-			motor[arm] = 127;
-		}
-		clearTimer(T1);
-	while(time1[T1] < 30)
-		motor[arm] = -80;
+task autonomous() {
+	pre_auton();
+	move1();
+	motor[claw] = -127;
+	while(SensorValue[liftEncoder] > -700) {
+		motor[leftLift] = -127;
+		motor[rightLift] = -127;
 	}
-		motor[arm] = 0;
+	motor[leftLift] = 0;
+	motor[rightLift] = 0;
+	motor[claw] = 0;
+	wait(1);
+	move1();
 
+
+}
+
+bool onGoingTask;
+task maxLift() {
+	onGoingTask = true;
+	if (abs(SensorValue[liftEncoder]) - TOP_LIFT > 200) {//if the lift is NOT RELATIVELY close to top already
+		if(SensorValue[liftEncoder] < TOP_LIFT) { //when the lift is behind the robot
+			while(SensorValue[liftEncoder] < TOP_LIFT - 60) { //until it is at the top
+				motor[rightLift] = 127;
+				motor[leftLift] = 127;
+			}
+
+			motor[rightLift] = -100;
+			motor[leftLift] = -100;
+			wait10Msec(2);
+			motor[rightLift] = 0;
+			motor[leftLift] = 0;
+			onGoingTask = false;
+			} else if (SensorValue[liftEncoder] > TOP_LIFT) { //when lift is in front of robot
+			while(SensorValue[liftEncoder] > TOP_LIFT + 30) {
+				motor[rightLift] = -127;
+				motor[leftLift] = -127;
+			}
+
+			motor[rightLift] = 127;
+			motor[leftLift] = 127;
+			wait10Msec(2);
+			motor[rightLift] = 0;
+			motor[leftLift] = 0;
+			onGoingTask = false;
+		}
+	}
 }
 
 task usercontrol () {
@@ -86,36 +139,20 @@ task usercontrol () {
 		if (abs(right) < 5)
 			right = 0;
 
-		motor[frontLeftMotor]  = left;
+		motor[frontLeftMotor] = left;
 		motor[rearLeftMotors] = left;
 
-		motor[frontRightMotor]  = right;
+		motor[frontRightMotor] = right;
 		motor[rearRightMotors] = right;
 
-		//PRIMARY INTAKE (AUTOMATIC)
-		if (manualMode == -1) {
-			if (vexRT[Btn5U] == 1) {
-				mobileGoalPosition = false; //assume it's in down position already
-				startTask(mobileGoalIntake);
+		//PRIMARY INTAKE (MANUAL)
+		if (vexRT[Btn5U] == 1 && SensorValue[mobileGoalPotentiometer] < TOP_MOBILE) {
+			motor[arm] = 127;
+			} else if (vexRT[Btn5D] == 1 && SensorValue[mobileGoalPotentiometer] > BOT_MOBILE) {
+			motor[arm] = -127;
 
-				} else if (vexRT[Btn5D] == 1) {
-				mobileGoalPosition = true; //assume it's in up pos already
-				startTask(mobileGoalIntake);
-			}
-		} else {
-			if (vexRT[Btn5U] == 1 && SensorValue[mobileGoalPotentiometer] < TOP_MOBILE) {
-				motor[arm] = 127;
-			}
-			else if (vexRT[Btn5D] ==1 && SensorValue[mobileGoalPotentiometer] > BOT_MOBILE) {
-				motor[arm] = -127;
 			} else {
-				motor[arm] = 0;
-			}
-		}
-
-		if (vexRT[Btn7U] == 1) {
-				manualMode *= -1;
-
+			motor[arm] = 0;
 		}
 
 		if (vexRT[Btn6U] == 1) {
@@ -126,7 +163,9 @@ task usercontrol () {
 			motor[rightLift] = -127;
 			motor[leftLift] = -127;
 
-			} else {
+			} else if (ongoingTask == true) {
+			continue;
+			}else {
 			motor[rightLift] = 0;
 			motor[leftLift] = 0;
 		}
@@ -137,41 +176,13 @@ task usercontrol () {
 
 			} else if (vexRT[Btn8D] == 1) {
 			motor[claw] = -127;
-
 			} else {
 			motor[claw] = 0;
 		}
 
 		if (vexRT(Btn8U) == 1) {
-			if (abs(SensorValue[liftEncoder]) - TOP_LIFT > 200) {//if the lift is NOT RELATIVELY close to top already
-				if(SensorValue[liftEncoder] < TOP_LIFT) { //when the lift is behind the robot
-					while(SensorValue[liftEncoder] != TOP_LIFT) { //until it is at the top
-						motor[rightLift] = 127;
-						motor[leftLift] = 127;
-					}
-
-					motor[rightLift] = -100;
-					motor[leftLift] = -100;
-					wait10Msec(2);
-					motor[rightLift] = 0;
-					motor[leftLift] = 0;
-
-					} else if (SensorValue[liftEncoder] > TOP_LIFT) { //when lift is in front of robot
-					while(SensorValue[liftEncoder] != TOP_LIFT) {
-						motor[rightLift] = -127;
-						motor[leftLift] = -127;
-					}
-
-					motor[rightLift] = 127;
-					motor[leftLift] = 127;
-					wait10Msec(7);
-					motor[rightLift] = 0;
-					motor[leftLift] = 0;
-
-				}
-			}
+			startTask(maxLift);
 		}
-		wait1Msec(40);
 	}
 
 }
