@@ -24,7 +24,7 @@ const int TOP_LIFT = -692;
 bool mobileGoalPosition; //true = up, false = down
 // up = 2800, down = 1500
 const int TOP_MOBILE = 2800;
-const int BOT_MOBILE = 1470;
+const int BOT_MOBILE = 1400;
 int manualMode = -1;
 
 
@@ -52,28 +52,23 @@ task autonomous() {
 
 task mobileGoalIntake() {
 	if(mobileGoalPosition) { //move into down pos
-		while(SensorValue[mobileGoalPotentiometer] > 1470){ //while the intake is above the "down" position
+		while(SensorValue[mobileGoalPotentiometer] > BOT_MOBILE){ //while the intake is above the "down" position
 			motor[arm] = -127;
 		}
-		clearTimer(T1);
-	while(time1[T1] < 30)
-		motor[arm] = 80; //brake, too lazy to make it shorter
+		motor[arm] = 80;
 
 		} else { //moves it into up pos
 		while(SensorValue[mobileGoalPotentiometer] < TOP_MOBILE) { //while the intake is below the "up" position
 			motor[arm] = 127;
 		}
-		clearTimer(T1);
-	while(time1[T1] < 30)
 		motor[arm] = -80;
 	}
-		motor[arm] = 0;
+	waitInMilliseconds(40);
+	motor[arm] = 0;
 
 }
 
 task usercontrol () {
-	clearTimer(T1);
-
 	while(1 == 1)
 	{
 		//arcade control (left joystick)
@@ -103,10 +98,10 @@ task usercontrol () {
 				startTask(mobileGoalIntake);
 			}
 		} else {
-			if (vexRT[Btn5U] == 1 && SensorValue[mobileGoalPotentiometer] < TOP_MOBILE) {
+			if (vexRT[Btn5U] == 1) {
 				motor[arm] = 127;
 			}
-			else if (vexRT[Btn5D] ==1 && SensorValue[mobileGoalPotentiometer] > BOT_MOBILE) {
+			else if (vexRT[Btn5D] ==1) {
 				motor[arm] = -127;
 			} else {
 				motor[arm] = 0;
@@ -114,8 +109,7 @@ task usercontrol () {
 		}
 
 		if (vexRT[Btn7U] == 1) {
-				manualMode *= -1;
-
+			manualMode *= -1;
 		}
 
 		if (vexRT[Btn6U] == 1) {
@@ -164,14 +158,13 @@ task usercontrol () {
 
 					motor[rightLift] = 127;
 					motor[leftLift] = 127;
-					wait10Msec(7);
+					wait10Msec(5);
 					motor[rightLift] = 0;
 					motor[leftLift] = 0;
 
 				}
 			}
 		}
-		wait1Msec(40);
 	}
 
 }
