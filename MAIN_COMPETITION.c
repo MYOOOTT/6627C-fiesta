@@ -21,11 +21,8 @@
 #include "Vex_Competition_Includes.c"
 
 const int TOP_LIFT = -692;
-bool mobileGoalPosition; //true = up, false = down
-// up = 2800, down = 1500
 const int TOP_MOBILE = 2800;
 const int BOT_MOBILE = 1520;
-int manualMode = -1;
 
 
 void pre_auton() {
@@ -45,13 +42,21 @@ void pre_auton() {
 	SensorValue[liftEncoder] = 0;
 }
 
-void move(int time, int direction) {//1 = forward, -1 = backward
-	int power = 127 * direction;
+
+void stopMotors() {
+	motor[frontRightMotor] = 0; //-
+	motor[rearRightMotors] = 0; //-
+	motor[frontLeftMotor] = 0; //+
+	motor[rearLeftMotors] = 0; //+
+}
+void move1() {//1 = forward, -1 = backward
+	int power = 127;
 	motor[frontRightMotor] = (power * -1); //-
 	motor[rearRightMotors] = (power * -1); //-
 	motor[frontLeftMotor] = power; //+
 	motor[rearLeftMotors] = power; //+
-	wait(time);
+	waitInMilliseconds(80);
+	stopMotors();
 }
 
 void turnRight() {
@@ -70,6 +75,7 @@ task something() {
 
 task autonomous() {
 	pre_auton();
+	move1();
 	motor[claw] = -127;
 	while(SensorValue[liftEncoder] > -700) {
 		motor[leftLift] = -127;
@@ -78,6 +84,8 @@ task autonomous() {
 	motor[leftLift] = 0;
 	motor[rightLift] = 0;
 	motor[claw] = 0;
+	wait(1);
+	move1();
 
 
 }
@@ -153,7 +161,7 @@ task usercontrol () {
 			motor[rightLift] = -127;
 			motor[leftLift] = -127;
 
-			} else if (ongoingTask == true) {
+			} else if (onGoingTask == true) {
 			continue;
 			}else {
 			motor[rightLift] = 0;

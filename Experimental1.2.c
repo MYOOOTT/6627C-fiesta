@@ -21,8 +21,6 @@
 #include "Vex_Competition_Includes.c"
 
 const int TOP_LIFT = -692;
-bool mobileGoalPosition; //true = up, false = down
-// up = 2800, down = 1500
 const int TOP_MOBILE = 2800;
 const int BOT_MOBILE = 1520;
 
@@ -52,8 +50,8 @@ void stopMotors() {
 	motor[rearLeftMotors] = 0; //+
 }
 void move1() {//1 = forward, -1 = backward
-	int power = 127
-'	motor[frontRightMotor] = (power * -1); //-
+	int power = 127;
+	motor[frontRightMotor] = (power * -1); //-
 	motor[rearRightMotors] = (power * -1); //-
 	motor[frontLeftMotor] = power; //+
 	motor[rearLeftMotors] = power; //+
@@ -163,7 +161,7 @@ task usercontrol () {
 			motor[rightLift] = -127;
 			motor[leftLift] = -127;
 
-			} else if (ongoingTask == true) {
+			} else if (onGoingTask == true) {
 			continue;
 			}else {
 			motor[rightLift] = 0;
